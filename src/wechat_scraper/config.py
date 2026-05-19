@@ -1,7 +1,8 @@
+# src/wechat_scraper/config.py
 from __future__ import annotations
 
 import configparser
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config" / "config.ini"
@@ -37,9 +38,16 @@ class HTTPConfig:
 
 
 @dataclass(frozen=True)
+class NetworkConfig:
+    # 解析后的本地 IP 列表，若为空则表示不绑定，使用系统默认单 IP
+    ip_pool: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class AppConfig:
     db: DBConfig
     http: HTTPConfig
+    network: NetworkConfig  # 新增网络配置分区
 
 
 def load_config(path: Path | str | None = None) -> AppConfig:
@@ -51,6 +59,11 @@ def load_config(path: Path | str | None = None) -> AppConfig:
         )
     cp = configparser.ConfigParser()
     cp.read(p, encoding="utf-8")
+    
+    # 解析 IP 池字符串为 list
+    ip_pool_str = cp.get("network", "ip_pool", fallback="")
+    ip_pool = [ip.strip() for ip in ip_pool_str.split(",") if ip.strip()]
+
     return AppConfig(
         db=DBConfig(
             host=cp.get("database", "host"),
@@ -66,5 +79,8 @@ def load_config(path: Path | str | None = None) -> AppConfig:
             timeout_seconds=cp.getint("http", "timeout_seconds", fallback=30),
             sleep_min=cp.getfloat("http", "sleep_min", fallback=0.8),
             sleep_max=cp.getfloat("http", "sleep_max", fallback=2.5),
+        ),
+        network=NetworkConfig(
+            ip_pool=ip_pool
         ),
     )

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wechat_scraper"
+version = "0.1.0"
+description = "Clean rewrite: read WeChat article URLs from RDS, fetch & extract text, write JSONL.gz shards."
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "lxml>=4.9",
+    "pymysql>=1.1",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+wechat-scraper = "wechat_scraper.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
